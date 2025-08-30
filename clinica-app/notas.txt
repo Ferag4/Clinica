@@ -1,0 +1,133 @@
+package com.clinica.clinica_app;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Scanner;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+import com.clinica.clinica_app.models.Role;
+import com.clinica.clinica_app.models.User;
+import com.clinica.clinica_app.services.UserService;
+
+@SpringBootApplication
+public class ClinicaApp implements CommandLineRunner {
+
+    @Autowired
+    private UserService userService;
+
+    public static void main(String[] args) {
+        SpringApplication.run(ClinicaApp.class, args);
+    }
+
+    @Override
+    public void run(String... args) {
+        Scanner scanner = new Scanner(System.in);
+        boolean running = true;
+
+        while (running) {
+            System.out.println("\n📋 Menú de Usuarios ROL: RH");
+            System.out.println("1. Crear usuario");
+            System.out.println("2. Listar usuarios");
+            System.out.println("3. Eliminar usuario");
+            System.out.println("4. Salir");
+            System.out.print("Seleccione una opción: ");
+            int option = scanner.nextInt();
+            scanner.nextLine(); // consume newline
+
+            switch (option) {
+                case 1 -> {
+                    System.out.print("Ingrese nombre completo: ");
+                    String firstName = scanner.nextLine();
+                    System.out.print("Ingrese apellido: ");
+                    String lastName = scanner.nextLine();
+                    System.out.print("Ingrese correo: ");
+                    String email = scanner.nextLine();
+                    System.out.print("Ingrese contraseña: ");
+                    String password = scanner.nextLine();
+                    System.out.print("Ingrese rol (HUMAN_RESOURCES, ADMINISTRATIVE, NURSE, DOCTOR): ");
+                    String roleInput = scanner.nextLine();
+                    Role role = Role.valueOf(roleInput.toUpperCase());
+
+                    System.out.print("Ingrese cédula: ");
+                    String documentId = scanner.nextLine();
+                    System.out.print("Ingrese fecha de nacimiento (YYYY-MM-DD): ");
+                    LocalDate birthDate = LocalDate.parse(scanner.nextLine());
+                    System.out.print("Ingrese género: ");
+                    String gender = scanner.nextLine();
+                    System.out.print("Ingrese dirección: ");
+                    String address = scanner.nextLine();
+                    System.out.print("Ingrese teléfono: ");
+                    String phoneNumber = scanner.nextLine();
+
+                    User user = userService.createUser(firstName, lastName, email, password, role, documentId,
+                            birthDate, gender, address, phoneNumber);
+                    System.out.println("✅ Usuario creado con ID: " + user.getId());
+                }
+                case 2 -> {
+                    List<User> users = userService.getAllUsers();
+                    System.out.println("📄 Lista de usuarios registrados:");
+
+                    for (User u : users) {
+                        System.out.println("──────────────────────────────");
+                        System.out.println("ID: " + u.getId());
+                        System.out.println("Nombre: " + u.getFirstName() + " " + u.getLastName());
+                        System.out.println("Correo: " + u.getEmail());
+                        System.out.println("Rol: " + u.getRole());
+                        System.out.println("Cédula: " + u.getDocumentId());
+                        System.out.println("Fecha de nacimiento: " + u.getBirthDate());
+                        System.out.println("Género: " + u.getGender());
+                        System.out.println("Dirección: " + u.getAddress());
+                        System.out.println("Teléfono: " + u.getPhoneNumber());
+                    }
+
+                    if (users.isEmpty()) {
+                        System.out.println("⚠️ No hay usuarios registrados.");
+                    }
+                }
+
+                case 3 -> {
+                    System.out.print("Ingrese el ID del usuario a eliminar: ");
+                    Long id = scanner.nextLong();
+                    scanner.nextLine(); // consume newline
+                    boolean deleted = userService.deleteUserById(id);
+                    if (deleted) {
+                        System.out.println("🗑️ Usuario eliminado.");
+                    } else {
+                        System.out.println("⚠️ Usuario no encontrado.");
+                    }
+                }
+                case 4 -> {
+                    System.out.println("👋 Saliendo...");
+                    running = false;
+                }
+                default -> System.out.println("❌ Opción inválida.");
+            }
+        }
+    }
+}
+
+Organizame este codigo para que me pregunte si soy de RH (me muestre las opciones que te compartí) admin, me preguntes si quiero registrar pacientes y programar citas. si mi rol es Enfermera muestrame este menú
+ 
+-registro de visitas de pacientes
+ 
+	-registrar datos vitales de los pacientes
+	-registrar los medicamentos administrados
+	-procedimientos
+	-observación relevante
+ 
+-historial de visitas de pacientes
+si soy  Médico me pregunte este menú
+ 
+-ver la historia clínica
+ 
+-crear registros médicos de los pacientes
+		-diagnósticos
+		-tratamientos
+		-resultados de pruebas
+		-prescripciones 
+		-información relevante
+Con todos loe metodos, atributos clases en inglés, pero las entradas y salidas a los usuarios en español

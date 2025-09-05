@@ -18,16 +18,16 @@ public class ClinicaApp implements CommandLineRunner {
 
     @Autowired
     private UserService userService;
-    
+
     @Autowired
     private PatientService patientService;
-    
+
     @Autowired
     private AppointmentService appointmentService;
-    
+
     @Autowired
     private MedicalRecordService medicalRecordService;
-    
+
     @Autowired
     private VisitService visitService;
 
@@ -38,29 +38,36 @@ public class ClinicaApp implements CommandLineRunner {
     @Override
     public void run(String... args) {
         Scanner scanner = new Scanner(System.in);
-        boolean running = true;
-        
-        System.out.println("🏥 BIENVENIDO AL SISTEMA DE CLÍNICA");
-        
-        // Autenticación simulada
-        System.out.print("Ingrese su ID de usuario: ");
-        Long userId = scanner.nextLong();
-        scanner.nextLine();
-        
-        User currentUser = userService.getUserById(userId);
-        if (currentUser == null) {
-            System.out.println("❌ Usuario no encontrado. Usando modo demo...");
-            // Crear usuario demo
-            currentUser = userService.createUser("Admin", "Demo", "admin@clinica.com", 
-                "password", Role.HUMAN_RESOURCES, "12345678", LocalDate.now(), 
-                "Masculino", "Calle Demo 123", "555-1234");
-            System.out.println("✅ Usuario demo creado con ID: " + currentUser.getId());
-        }
-        
-        System.out.println("Bienvenido/a: " + currentUser.getFirstName() + " " + currentUser.getLastName());
-        System.out.println("Rol: " + currentUser.getRole());
-        
-        while (running) {
+        boolean systemRunning = true;
+
+        while (systemRunning) {
+            System.out.println("🏥 BIENVENIDO AL SISTEMA DE CLÍNICA");
+
+            // Autenticación
+            System.out.print("Ingrese su ID de usuario (o 0 para salir): ");
+            Long userId = scanner.nextLong();
+            scanner.nextLine(); // Limpiar buffer
+
+            if (userId == 0) {
+                System.out.println("👋 Saliendo del sistema...");
+                System.exit(0);
+                systemRunning = false;
+            }
+
+            User currentUser = userService.getUserById(userId);
+            if (currentUser == null) {
+                System.out.println("❌ Usuario no encontrado. Usando modo demo...");
+                // Crear usuario demo
+                currentUser = userService.createUser("Admin", "Demo", "admin@clinica.com",
+                        "password", Role.HUMAN_RESOURCES, "12345678", LocalDate.now(),
+                        "Masculino", "Calle Demo 123", "555-1234");
+                System.out.println("✅ Usuario demo creado con ID: " + currentUser.getId());
+            }
+
+            System.out.println("Bienvenido/a: " + currentUser.getFirstName() + " " + currentUser.getLastName());
+            System.out.println("Rol: " + currentUser.getRole());
+
+            // MENÚ SEGÚN ROL
             switch (currentUser.getRole()) {
                 case HUMAN_RESOURCES -> showHRMenu(scanner);
                 case ADMINISTRATIVE -> showAdminMenu(scanner);
@@ -68,42 +75,58 @@ public class ClinicaApp implements CommandLineRunner {
                 case DOCTOR -> showDoctorMenu(scanner);
                 default -> {
                     System.out.println("Rol no reconocido.");
-                    running = false;
+                    systemRunning = false;
                 }
             }
-            
-            if (running) {
-                System.out.print("¿Desea realizar otra operación? (s/n): ");
-                String response = scanner.nextLine();
-                if (response.equalsIgnoreCase("n")) {
-                    running = false;
-                    System.out.println("👋 Saliendo del sistema...");
-                }
-            }
-        }
-        scanner.close();
-    }
-    
-    private void showHRMenu(Scanner scanner) {
-        System.out.println("\n📋 Menú de Recursos Humanos");
-        System.out.println("1. Crear usuario");
-        System.out.println("2. Listar usuarios");
-        System.out.println("3. Eliminar usuario");
-        System.out.println("4. Volver al menú principal");
-        System.out.print("Seleccione una opción: ");
-        
-        int option = scanner.nextInt();
-        scanner.nextLine();
 
-        switch (option) {
-            case 1 -> createUser(scanner);
-            case 2 -> listUsers();
-            case 3 -> deleteUser(scanner);
-            case 4 -> { return; }
-            default -> System.out.println("❌ Opción inválida.");
+            // Después de salir de cualquier menú, volverá automáticamente
+            // al inicio del while(systemRunning) y pedirá ID nuevamente
+        }
+
+        scanner.close();
+        System.out.println("Sistema cerrado.");
+    }
+
+    private void showHRMenu(Scanner scanner) {
+        boolean stayInMenu = true;
+
+        while (stayInMenu) {
+            System.out.println("\n=== Menú de Recursos Humanos ===");
+            System.out.println("1. Crear usuario");
+            System.out.println("2. Listar usuarios");
+            System.out.println("3. Eliminar usuario");
+            System.out.println("4. Volver al menú principal");
+            System.out.println("5. Salir del sistema");
+            System.out.print("Seleccione una opción: ");
+
+            int option = scanner.nextInt();
+            scanner.nextLine();
+
+            switch (option) {
+                case 1:
+                    createUser(scanner);
+                    break;
+                case 2:
+                    listUsers();
+                    break;
+                case 3:
+                    deleteUser(scanner);
+                    break;
+
+                case 4:
+                    System.out.println("Volviendo al menú principal...");
+                    stayInMenu = false; // Sale del bucle
+                    break;
+                case 5:
+                    System.out.println("👋 Saliendo del sistema...");
+                    System.exit(0);
+                    break;
+                default:
+                    System.out.println("Opción inválida");
+            }
         }
     }
-    
+
     private void showAdminMenu(Scanner scanner) {
         System.out.println("\n📋 Menú Administrativo");
         System.out.println("1. Registrar paciente");
@@ -111,7 +134,7 @@ public class ClinicaApp implements CommandLineRunner {
         System.out.println("3. Ver citas programadas");
         System.out.println("4. Volver al menú principal");
         System.out.print("Seleccione una opción: ");
-        
+
         int option = scanner.nextInt();
         scanner.nextLine();
 
@@ -119,47 +142,53 @@ public class ClinicaApp implements CommandLineRunner {
             case 1 -> registerPatient(scanner);
             case 2 -> scheduleAppointment(scanner);
             case 3 -> viewScheduledAppointments();
-            case 4 -> { return; }
+            case 4 -> {
+                return;
+            }
             default -> System.out.println("❌ Opción inválida.");
         }
     }
-    
+
     private void showNurseMenu(Scanner scanner) {
         System.out.println("\n📋 Menú de Enfermería");
         System.out.println("1. Registro de visitas de pacientes");
         System.out.println("2. Historial de visitas de pacientes");
         System.out.println("3. Volver al menú principal");
         System.out.print("Seleccione una opción: ");
-        
+
         int option = scanner.nextInt();
         scanner.nextLine();
 
         switch (option) {
             case 1 -> registerPatientVisit(scanner);
             case 2 -> viewVisitHistory(scanner);
-            case 3 -> { return; }
+            case 3 -> {
+                return;
+            }
             default -> System.out.println("❌ Opción inválida.");
         }
     }
-    
+
     private void showDoctorMenu(Scanner scanner) {
         System.out.println("\n📋 Menú Médico");
         System.out.println("1. Ver historia clínica del paciente");
         System.out.println("2. Crear registro médico");
         System.out.println("3. Volver al menú principal");
         System.out.print("Seleccione una opción: ");
-        
+
         int option = scanner.nextInt();
         scanner.nextLine();
 
         switch (option) {
             case 1 -> viewMedicalHistory(scanner);
             case 2 -> createMedicalRecord(scanner);
-            case 3 -> { return; }
+            case 3 -> {
+                return;
+            }
             default -> System.out.println("❌ Opción inválida.");
         }
     }
-    
+
     private void createUser(Scanner scanner) {
         System.out.print("Ingrese nombre completo: ");
         String firstName = scanner.nextLine();
@@ -188,7 +217,7 @@ public class ClinicaApp implements CommandLineRunner {
                 birthDate, gender, address, phoneNumber);
         System.out.println("✅ Usuario creado con ID: " + user.getId());
     }
-    
+
     private void listUsers() {
         List<User> users = userService.getAllUsers();
         System.out.println("📄 Lista de usuarios registrados:");
@@ -210,7 +239,7 @@ public class ClinicaApp implements CommandLineRunner {
             System.out.println("⚠️ No hay usuarios registrados.");
         }
     }
-    
+
     private void deleteUser(Scanner scanner) {
         System.out.print("Ingrese el ID del usuario a eliminar: ");
         Long id = scanner.nextLong();
@@ -222,7 +251,7 @@ public class ClinicaApp implements CommandLineRunner {
             System.out.println("⚠️ Usuario no encontrado.");
         }
     }
-    
+
     private void registerPatient(Scanner scanner) {
         System.out.print("Ingrese nombre del paciente: ");
         String firstName = scanner.nextLine();
@@ -245,11 +274,11 @@ public class ClinicaApp implements CommandLineRunner {
         System.out.print("Ingrese condiciones médicas preexistentes: ");
         String medicalConditions = scanner.nextLine();
 
-        Patient patient = patientService.createPatient(firstName, lastName, documentId, 
+        Patient patient = patientService.createPatient(firstName, lastName, documentId,
                 birthDate, gender, address, phoneNumber, emergencyContact, allergies, medicalConditions);
         System.out.println("✅ Paciente registrado con ID: " + patient.getId());
     }
-    
+
     private void scheduleAppointment(Scanner scanner) {
         System.out.print("Ingrese ID del paciente: ");
         Long patientId = scanner.nextLong();
@@ -272,7 +301,7 @@ public class ClinicaApp implements CommandLineRunner {
             System.out.println("❌ Error al programar la cita. Verifique los IDs.");
         }
     }
-    
+
     private void viewScheduledAppointments() {
         List<Appointment> appointments = appointmentService.getAllAppointments();
         System.out.println("📅 Citas programadas:");
@@ -292,7 +321,7 @@ public class ClinicaApp implements CommandLineRunner {
             System.out.println("⚠️ No hay citas programadas.");
         }
     }
-    
+
     private void registerPatientVisit(Scanner scanner) {
         System.out.print("Ingrese ID del paciente: ");
         Long patientId = scanner.nextLong();
@@ -300,7 +329,7 @@ public class ClinicaApp implements CommandLineRunner {
         System.out.print("Ingrese ID de la enfermera: ");
         Long nurseId = scanner.nextLong();
         scanner.nextLine();
-        
+
         System.out.println("📊 Registro de signos vitales:");
         System.out.print("Presión arterial: ");
         String bloodPressure = scanner.nextLine();
@@ -316,43 +345,43 @@ public class ClinicaApp implements CommandLineRunner {
         System.out.print("Saturación de oxígeno: ");
         double oxygenSaturation = scanner.nextDouble();
         scanner.nextLine();
-        
+
         System.out.println("💊 Medicamentos administrados:");
         System.out.print("Ingrese medicamentos (separados por coma): ");
         String medications = scanner.nextLine();
-        
+
         System.out.println("🩺 Procedimientos realizados:");
         System.out.print("Ingrese procedimientos (separados por coma): ");
         String procedures = scanner.nextLine();
-        
+
         System.out.println("📝 Observaciones relevantes:");
         System.out.print("Ingrese observaciones: ");
         String observations = scanner.nextLine();
-        
-        Visit visit = visitService.registerVisit(patientId, nurseId, bloodPressure, 
-                temperature, heartRate, respiratoryRate, oxygenSaturation, 
+
+        Visit visit = visitService.registerVisit(patientId, nurseId, bloodPressure,
+                temperature, heartRate, respiratoryRate, oxygenSaturation,
                 medications, procedures, observations);
-        
+
         if (visit != null) {
             System.out.println("✅ Visita registrada con ID: " + visit.getId());
         } else {
             System.out.println("❌ Error al registrar la visita. Verifique los IDs.");
         }
     }
-    
+
     private void viewVisitHistory(Scanner scanner) {
         System.out.print("Ingrese ID del paciente: ");
         Long patientId = scanner.nextLong();
         scanner.nextLine();
-        
+
         List<Visit> visits = visitService.getVisitsByPatientId(patientId);
         Patient patient = patientService.getPatientById(patientId);
-        
+
         if (patient == null) {
             System.out.println("❌ Paciente no encontrado.");
             return;
         }
-        
+
         System.out.println("📋 Historial de visitas de: " + patient.getFirstName() + " " + patient.getLastName());
 
         for (Visit v : visits) {
@@ -373,20 +402,20 @@ public class ClinicaApp implements CommandLineRunner {
             System.out.println("⚠️ No hay visitas registradas para este paciente.");
         }
     }
-    
+
     private void viewMedicalHistory(Scanner scanner) {
         System.out.print("Ingrese ID del paciente: ");
         Long patientId = scanner.nextLong();
         scanner.nextLine();
-        
+
         List<MedicalRecord> records = medicalRecordService.getRecordsByPatientId(patientId);
         Patient patient = patientService.getPatientById(patientId);
-        
+
         if (patient == null) {
             System.out.println("❌ Paciente no encontrado.");
             return;
         }
-        
+
         System.out.println("📋 Historia clínica de: " + patient.getFirstName() + " " + patient.getLastName());
 
         for (MedicalRecord r : records) {
@@ -404,7 +433,7 @@ public class ClinicaApp implements CommandLineRunner {
             System.out.println("⚠️ No hay registros médicos para este paciente.");
         }
     }
-    
+
     private void createMedicalRecord(Scanner scanner) {
         System.out.print("Ingrese ID del paciente: ");
         Long patientId = scanner.nextLong();
@@ -412,7 +441,7 @@ public class ClinicaApp implements CommandLineRunner {
         System.out.print("Ingrese ID del médico: ");
         Long doctorId = scanner.nextLong();
         scanner.nextLine();
-        
+
         System.out.println("🩺 Creación de registro médico:");
         System.out.print("Diagnóstico: ");
         String diagnosis = scanner.nextLine();
@@ -424,10 +453,10 @@ public class ClinicaApp implements CommandLineRunner {
         String prescriptions = scanner.nextLine();
         System.out.print("Información relevante: ");
         String relevantInfo = scanner.nextLine();
-        
+
         MedicalRecord record = medicalRecordService.createMedicalRecord(
                 patientId, doctorId, diagnosis, treatment, testResults, prescriptions, relevantInfo);
-        
+
         if (record != null) {
             System.out.println("✅ Registro médico creado con ID: " + record.getId());
         } else {

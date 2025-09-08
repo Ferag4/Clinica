@@ -2,6 +2,7 @@ package com.clinica.clinica_app;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Scanner;
 
@@ -128,69 +129,119 @@ public class ClinicaApp implements CommandLineRunner {
     }
 
     private void showAdminMenu(Scanner scanner) {
-        System.out.println("\n📋 Menú Administrativo");
-        System.out.println("1. Registrar paciente");
-        System.out.println("2. Programar cita");
-        System.out.println("3. Ver citas programadas");
-        System.out.println("4. Volver al menú principal");
-        System.out.print("Seleccione una opción: ");
+        boolean stayInMenu = true;
 
-        int option = scanner.nextInt();
-        scanner.nextLine();
+        while (stayInMenu) {
+            System.out.println("\n📋 Menú Administrativo");
+            System.out.println("1. Registrar paciente");
+            System.out.println("2. Programar cita");
+            System.out.println("3. Ver citas programadas");
+            System.out.println("4. Volver al menú principal");
+            System.out.println("5. Salir del sistema");
+            System.out.print("Seleccione una opción: ");
 
-        switch (option) {
-            case 1 -> registerPatient(scanner);
-            case 2 -> scheduleAppointment(scanner);
-            case 3 -> viewScheduledAppointments();
-            case 4 -> {
-                return;
+            int option = scanner.nextInt();
+            scanner.nextLine();
+
+            switch (option) {
+                case 1:
+                    registerPatient(scanner);
+                    break;
+                case 2:
+                    scheduleAppointment(scanner);
+                    break;
+                case 3:
+                    viewScheduledAppointments();
+                    break;
+                case 4:
+                    System.out.println("Volviendo al menú principal...");
+                    stayInMenu = false; // Sale del bucle
+                    break;
+                case 5:
+                    System.out.println("👋 Saliendo del sistema...");
+                    System.exit(0);
+                    break;
+                default:
+                    System.out.println("Opción inválida");
             }
-            default -> System.out.println("❌ Opción inválida.");
         }
+
     }
 
     private void showNurseMenu(Scanner scanner) {
-        System.out.println("\n📋 Menú de Enfermería");
-        System.out.println("1. Registro de visitas de pacientes");
-        System.out.println("2. Historial de visitas de pacientes");
-        System.out.println("3. Volver al menú principal");
-        System.out.print("Seleccione una opción: ");
+        boolean stayInMenu = true;
 
-        int option = scanner.nextInt();
-        scanner.nextLine();
+        while (stayInMenu) {
+            System.out.println("\n📋 Menú de Enfermería");
+            System.out.println("1. Registro de visitas de pacientes");
+            System.out.println("2. Historial de visitas de pacientes");
+            System.out.println("3. Volver al menú principal");
+            System.out.println("4. Salir del sistema");
+            System.out.print("Seleccione una opción: ");
 
-        switch (option) {
-            case 1 -> registerPatientVisit(scanner);
-            case 2 -> viewVisitHistory(scanner);
-            case 3 -> {
-                return;
+            int option = scanner.nextInt();
+            scanner.nextLine();
+
+            switch (option) {
+                case 1:
+                    registerPatientVisit(scanner);
+                    break;
+                case 2:
+                    viewVisitHistory(scanner);
+                    break;
+                case 3:
+                    System.out.println("Volviendo al menú principal...");
+                    stayInMenu = false; // Sale del bucle
+                    break;
+                case 4:
+                    System.out.println("👋 Saliendo del sistema...");
+                    System.exit(0);
+                    break;
+                default:
+                    System.out.println("Opción inválida");
             }
-            default -> System.out.println("❌ Opción inválida.");
         }
     }
 
     private void showDoctorMenu(Scanner scanner) {
-        System.out.println("\n📋 Menú Médico");
-        System.out.println("1. Ver historia clínica del paciente");
-        System.out.println("2. Crear registro médico");
-        System.out.println("3. Volver al menú principal");
-        System.out.print("Seleccione una opción: ");
+        boolean stayInMenu = true;
 
-        int option = scanner.nextInt();
-        scanner.nextLine();
+        while (stayInMenu) {
+            System.out.println("\n📋 Menú Médico");
+            System.out.println("1. Ver historia clínica del paciente");
+            System.out.println("2. Crear registro médico");
+            System.out.println("3. Volver al menú principal");
+            System.out.println("4. Salir del sistema");
+            System.out.print("Seleccione una opción: ");
 
-        switch (option) {
-            case 1 -> viewMedicalHistory(scanner);
-            case 2 -> createMedicalRecord(scanner);
-            case 3 -> {
-                return;
+            int option = scanner.nextInt();
+            scanner.nextLine();
+
+            switch (option) {
+                case 1:
+                    viewMedicalHistory(scanner);
+                    break;
+                case 2:
+                    createMedicalRecord(scanner);
+                    break;
+                case 3:
+                    System.out.println("Volviendo al menú principal...");
+                    stayInMenu = false; // Sale del bucle
+                    break;
+                case 4:
+                    System.out.println("👋 Saliendo del sistema...");
+                    System.exit(0);
+                    break;
+                default:
+                    System.out.println("Opción inválida");
             }
-            default -> System.out.println("❌ Opción inválida.");
         }
     }
 
     private void createUser(Scanner scanner) {
-        System.out.print("Ingrese nombre completo: ");
+        LocalDate birthDate = null;
+        boolean validDate = false;
+        System.out.print("Ingrese nombre : ");
         String firstName = scanner.nextLine();
         System.out.print("Ingrese apellido: ");
         String lastName = scanner.nextLine();
@@ -204,8 +255,17 @@ public class ClinicaApp implements CommandLineRunner {
 
         System.out.print("Ingrese cédula: ");
         String documentId = scanner.nextLine();
-        System.out.print("Ingrese fecha de nacimiento (YYYY-MM-DD): ");
-        LocalDate birthDate = LocalDate.parse(scanner.nextLine());
+
+        while (!validDate) {
+            try {
+                System.out.print("Ingrese fecha de nacimiento (YYYY-MM-DD): ");
+                String dateInput = scanner.nextLine();
+                birthDate = LocalDate.parse(dateInput);
+                validDate = true;
+            } catch (DateTimeParseException e) {
+                System.out.println("❌ Formato de fecha incorrecto. Use YYYY-MM-DD (ej: 1990-05-15)");
+            }
+        }
         System.out.print("Ingrese género: ");
         String gender = scanner.nextLine();
         System.out.print("Ingrese dirección: ");
@@ -225,7 +285,7 @@ public class ClinicaApp implements CommandLineRunner {
         for (User u : users) {
             System.out.println("──────────────────────────────");
             System.out.println("ID: " + u.getId());
-            System.out.println("Nombre: " + u.getFirstName() + " " + u.getLastName());
+            System.out.println("Nombre completo: " + u.getFirstName() + " " + u.getLastName());
             System.out.println("Correo: " + u.getEmail());
             System.out.println("Rol: " + u.getRole());
             System.out.println("Cédula: " + u.getDocumentId());
@@ -253,14 +313,24 @@ public class ClinicaApp implements CommandLineRunner {
     }
 
     private void registerPatient(Scanner scanner) {
+        LocalDate birthDate = null;
+        boolean validDate = false;
         System.out.print("Ingrese nombre del paciente: ");
         String firstName = scanner.nextLine();
         System.out.print("Ingrese apellido del paciente: ");
         String lastName = scanner.nextLine();
         System.out.print("Ingrese cédula: ");
         String documentId = scanner.nextLine();
-        System.out.print("Ingrese fecha de nacimiento (YYYY-MM-DD): ");
-        LocalDate birthDate = LocalDate.parse(scanner.nextLine());
+        while (!validDate) {
+            try {
+                System.out.print("Ingrese fecha de nacimiento (YYYY-MM-DD): ");
+                String dateInput = scanner.nextLine();
+                birthDate = LocalDate.parse(dateInput);
+                validDate = true;
+            } catch (DateTimeParseException e) {
+                System.out.println("❌ Formato de fecha incorrecto. Use YYYY-MM-DD (ej: 1990-05-15)");
+            }
+        }
         System.out.print("Ingrese género: ");
         String gender = scanner.nextLine();
         System.out.print("Ingrese dirección: ");
@@ -280,14 +350,26 @@ public class ClinicaApp implements CommandLineRunner {
     }
 
     private void scheduleAppointment(Scanner scanner) {
-        System.out.print("Ingrese ID del paciente: ");
+        LocalDate date = null;
+        boolean validDate = false;
+        System.out.print("Ingrese ID del paciente ya existente: ");
         Long patientId = scanner.nextLong();
         scanner.nextLine();
-        System.out.print("Ingrese ID del médico: ");
+        System.out.print("Ingrese ID del médico ya existente: ");
         Long doctorId = scanner.nextLong();
         scanner.nextLine();
-        System.out.print("Ingrese fecha de la cita (YYYY-MM-DD): ");
-        LocalDate date = LocalDate.parse(scanner.nextLine());
+
+        while (!validDate) {
+            try {
+                System.out.print("Ingrese fecha de la cita (YYYY-MM-DD): ");
+                String dateInput = scanner.nextLine();
+                date = LocalDate.parse(dateInput);
+                validDate = true;
+            } catch (DateTimeParseException e) {
+                System.out.println("❌ Formato de fecha incorrecto. Use YYYY-MM-DD (ej: 1990-05-15)");
+            }
+        }
+        
         System.out.print("Ingrese hora de la cita (HH:MM): ");
         LocalTime time = LocalTime.parse(scanner.nextLine());
         System.out.print("Ingrese motivo de la cita: ");
